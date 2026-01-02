@@ -25,6 +25,17 @@ const Login = () => {
         setError(null);
 
         try {
+            // Check if user exists
+            const { data: existingUser } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('email', formData.email)
+                .single();
+
+            if (!existingUser) {
+                throw new Error('User not found. Please register first.');
+            }
+
             const { error: signInError } = await supabase.auth.signInWithPassword({
                 email: formData.email,
                 password: formData.password,

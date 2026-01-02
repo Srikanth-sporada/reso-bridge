@@ -38,6 +38,17 @@ const Register = () => {
         setError(null);
 
         try {
+            // Check if user already exists
+            const { data: existingUser } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('email', formData.email)
+                .single();
+
+            if (existingUser) {
+                throw new Error('User already exists');
+            }
+
             const { error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -45,13 +56,14 @@ const Register = () => {
                     data: {
                         full_name: formData.fullName,
                     },
+                    emailRedirectTo: import.meta.env.VITE_APP_URL || 'https://reso-bridge.vercel.app',
                 },
             });
 
             if (signUpError) throw signUpError;
 
             navigate('/verify-email');
-        } catch (err: any) {
+        } catch (err:any) {
             setError(err.message || 'An error occurred');
         } finally {
             setLoading(false);
